@@ -1,9 +1,21 @@
 import telebot
+from telebot import types
 from time import sleep
-
-bot = telebot.TeleBot('5530656760:AAGAgKuFsVqZlneTqcPmy-z2u3VtlUlHHP4')
+import datetime
+import yadisk
+import config as conf
+from tagDict import dict
+import pandas as pd
+#
+bot = telebot.TeleBot(conf.tokenBot)
 lang = 'ru'
 
+@bot.message_handler(commands=['start'])
+def start(message):
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    btn = types.KeyboardButton("Выгрузить ДЗМ")
+    markup.add(btn)
+    bot.send_message(message.chat.id, "Готов выгружать и показывать!", reply_markup=markup)
 @bot.message_handler()
 def get_text_message(message):
     str = " "
@@ -29,6 +41,37 @@ def get_text_message(message):
                 str = ''
         return str
 
+    if "test" in targetText:
+        print(message.chat.id)
+    if 'выгрузить дзм' in targetText:
+        cols = [3, 11, 13,14]
+        file_name = 'data.xlsx'
+        y = yadisk.YaDisk(token=conf.tokenYad)
+        if y.check_token():
+            y.download('/ДЗМ.xlsx', file_name)
+        i = 0
+        t = datetime.date.today()
+        # df= pd.read_excel('data.xlsx', sheet_name=t.__format__('%d.%m'), usecols=cols)
+        df = pd.read_excel(file_name, sheet_name=t.__format__('%d.%m'), usecols=cols)
+        while True:
+            try:
+                t = datetime.date.fromordinal(t.toordinal() - i)
+                df = pd.read_excel(file_name, sheet_name=t.__format__('%d.%m'), usecols=cols)
+                break
+            except ValueError:
+                i = i + 1
+        df2 = df.fillna("Нет решения")
+        dataframe_list = df2[df2['Способ решения'] == 'Нет решения'][['Код инцидента', 'Ответственный ТП3']].values.tolist()
+        str = "Просьба заполнить ДЗМ\nhttps://disk.yandex.ru/edit/d/JV_EkucOLj2YAy608JbyKiPegnqahzm72s0qoIz-cKg6dk03Q04wTlBEQQ\n" \
+              "Следующих специалистов:\n"
+        print(dataframe_list)
+        for item in dataframe_list:
+            str = str + item[0] + ' ' + dict[item[1]] + '\n'
+        try:
+            bot.send_message(conf.chatVEP,str)
+        except Exception as _exe:
+            print(_exe)
+            sleep(5)
 
     if "/contract/" in targetText:
         if 'sid' not in targetText or 'сид' not in targetText:
@@ -55,8 +98,9 @@ def get_text_message(message):
         str +=tagName(trigerLamskov)
         str +=tagName(trigerGudkov)
     print(str)
-    if ("@" in str):
-        bot.send_message(chat_id=message.chat.id, reply_to_message_id=message.id, text= str)
+    if 'Просьба заполнить ДЗМ' not in str:
+        if ("@" in str):
+            bot.send_message(chat_id=message.chat.id, reply_to_message_id=message.id, text= str)
 while True:
     try:
         bot.polling(none_stop=True,interval=0)
