@@ -51,8 +51,6 @@ def get_text_message(message):
             y.download('/ДЗМ.xlsx', file_name)
         i = 0
         t = datetime.date.today()
-        # df= pd.read_excel('data.xlsx', sheet_name=t.__format__('%d.%m'), usecols=cols)
-        df = pd.read_excel(file_name, sheet_name=t.__format__('%d.%m'), usecols=cols)
         while True:
             try:
                 t = datetime.date.fromordinal(t.toordinal() - i)
@@ -60,9 +58,10 @@ def get_text_message(message):
                 break
             except ValueError:
                 i = i + 1
-        df2 = df.fillna("Нет решения")
-        dataframe_list = df2[df2['Способ решения'] == 'Нет решения'][['Код инцидента', 'Ответственный ТП3']].values.tolist()
-        str = "Просьба заполнить ДЗМ\nhttps://disk.yandex.ru/edit/d/JV_EkucOLj2YAy608JbyKiPegnqahzm72s0qoIz-cKg6dk03Q04wTlBEQQ\n" \
+        df2 = df.fillna("Пустое значение")
+        df3 = df2[df2['Способ решения'] == 'Пустое значение'][['Код инцидента','Ответственный ТП3','Решение']]
+        dataframe_list = df3[df3['Решение']=='Пустое значение'][['Код инцидента','Ответственный ТП3']].values.tolist()
+        str = "Просьба заполнить ДЗМ\nhttps://disk.yandex.ru/i/rCzzuoBHTJyYFQ\n" \
               "Следующих специалистов:\n"
         print(dataframe_list)
         for item in dataframe_list:
