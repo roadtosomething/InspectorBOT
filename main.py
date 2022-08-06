@@ -9,12 +9,12 @@ import pandas as pd
 #
 bot = telebot.TeleBot(conf.tokenBot)
 lang = 'ru'
+markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+btn = types.KeyboardButton("Выгрузить ДЗМ")
+markup.add(btn)
 
 @bot.message_handler(commands=['start'])
 def start(message):
-    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    btn = types.KeyboardButton("Выгрузить ДЗМ")
-    markup.add(btn)
     bot.send_message(message.chat.id, "Готов выгружать и показывать!", reply_markup=markup)
 @bot.message_handler()
 def get_text_message(message):
@@ -46,7 +46,10 @@ def get_text_message(message):
     if 'выгрузить дзм' in targetText:
         cols = [3, 11, 13,14]
         file_name = 'data.xlsx'
-        y = yadisk.YaDisk(token=conf.tokenYad)
+        try:
+            y = yadisk.YaDisk(token=conf.tokenYad)
+        except Exception:
+            bot.send_message(message.chat.id,'Кто-то недавно обновил файл, попробуй через пару секунд выгрузить, а то яндекс тормозит', reply_markup=markup)
         if y.check_token():
             y.download('/ДЗМ.xlsx', file_name)
         i = 0
