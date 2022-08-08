@@ -11,7 +11,8 @@ bot = telebot.TeleBot(conf.tokenBot)
 lang = 'ru'
 markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
 btn = types.KeyboardButton("Выгрузить ДЗМ")
-markup.add(btn)
+btn2 = types.KeyboardButton("Выгрузить ДЗМ для меня")
+markup.add(btn,btn2)
 
 @bot.message_handler(commands=['start'])
 def start(message):
@@ -63,6 +64,7 @@ def get_text_message(message):
                 i = i + 1
         df2 = df.fillna("Пустое значение")
         df3 = df2[df2['Способ решения'] == 'Пустое значение'][['Код инцидента','Ответственный ТП3','Решение']]
+        df3.sort_values(by='Ответственный ТП3')
         dataframe_list = df3[df3['Решение']=='Пустое значение'][['Код инцидента','Ответственный ТП3']].values.tolist()
         str = "Просьба заполнить ДЗМ\nhttps://disk.yandex.ru/i/rCzzuoBHTJyYFQ\n" \
               "Следующих специалистов:\n"
@@ -70,7 +72,10 @@ def get_text_message(message):
         for item in dataframe_list:
             str = str + item[0] + ' ' + dict[item[1]] + '\n'
         try:
-            bot.send_message(conf.chatVEP,str)
+            if ('для меня') in targetText:
+                bot.send_message(message.chat.id,str)
+            else:
+                bot.send_message(conf.chatVEP,str)
         except Exception as _exe:
             print(_exe)
             sleep(5)
