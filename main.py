@@ -10,6 +10,7 @@ import pandas as pd
 bot = telebot.TeleBot(conf.tokenBot)
 lang = 'ru'
 markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+start_markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
 btn = types.KeyboardButton("Выгрузить ДЗМ")
 btn2 = types.KeyboardButton("Выгрузить ДЗМ для меня")
 markup.add(btn,btn2)
@@ -22,10 +23,10 @@ def get_text_message(message):
     str = " "
     targetText = message.text.lower()
     print(targetText)
-    trigerMikova = ["@diamikova","затян","обработай","проставь","смени","PKO_0000_0208",'свяжи','связа','формир','синхронизируй']
+    trigerMikova = ["@diamikova","тян","обработай","проставь","смени","PKO_0000_0208",'свяжи','связа','формир','синхронизируй']
     trigerTrukhacheva = ["@Elenka_Evgen","смени","проставь","PKO_0000_0208"]
-    trigerPokholkov = ["@Krasnoff_YT","обработай","затян",'свяжи','синхронизируй']
-    trigerLamskov = ["@lamskoff","затян","обработай",'свяжи','связа','формир']
+    trigerPokholkov = ["@Krasnoff_YT","обработай","тян",'свяжи','синхронизируй']
+    trigerLamskov = ["@lamskoff","тян","обработай",'свяжи','связа','формир']
     trigerGudkov = ["@Georgiy_Gudkov","ошибка","смени","проставь",'поправь','пг_ик_4004','посмотри','убери','смп']
     trigerGilev = ["@Smiiiita","эа2020_ик_10127","спек","спецификаци",'замени']
     trigerVoronin = ["@jlmdie","эа2020_ик_10127","спек","спецификаци",'sid','сид']
@@ -53,6 +54,7 @@ def get_text_message(message):
             bot.send_message(message.chat.id,'Кто-то недавно обновил файл, попробуй через пару секунд выгрузить, а то яндекс тормозит', reply_markup=markup)
         if y.check_token():
             y.download('/ДЗМ.xlsx', file_name)
+        print("Dowload done...")
         i = 0
         t = datetime.date.today()
         while True:
@@ -62,23 +64,24 @@ def get_text_message(message):
                 break
             except ValueError:
                 i = i + 1
+        print('DFForming done...')
         df2 = df.fillna("Пустое значение")
-        df3 = df2[df2['Способ решения'] == 'Пустое значение'][['Код инцидента','Ответственный ТП3','Решение']]
+        df3 = df2[(df2['Способ решения'] == 'Пустое значение') & (df2['Ответственный ТП3']!='MorozovaAV')][['Код инцидента','Ответственный ТП3','Решение']]
         df3.sort_values(by='Ответственный ТП3')
         dataframe_list = df3[df3['Решение']=='Пустое значение'][['Код инцидента','Ответственный ТП3']].values.tolist()
-        str = "Просьба заполнить ДЗМ\nhttps://disk.yandex.ru/i/rCzzuoBHTJyYFQ\n" \
+        print('ListInformationForming done...')
+        strMessage = "Просьба заполнить ДЗМ\nhttps://disk.yandex.ru/i/rCzzuoBHTJyYFQ\n" \
               "Следующих специалистов:\n"
-        print(dataframe_list)
+        print('Begin Formating string message')
         for item in dataframe_list:
-            str = str + item[0] + ' ' + dict[item[1]] + '\n'
-        try:
-            if ('для меня') in targetText:
-                bot.send_message(message.chat.id,str)
-            else:
-                bot.send_message(conf.chatVEP,str)
-        except Exception as _exe:
-            print(_exe)
-            sleep(5)
+            strMessage = strMessage + item[0] + ' ' + dict[item[1]] + '\n'
+        if ('для меня') in targetText:
+            print('Message send for you')
+            bot.send_message(message.chat.id,strMessage)
+        else:
+            print('Message send')
+            bot.send_message(conf.chatVEP,strMessage)
+
 
     if "/contract/" in targetText:
         if 'sid' not in targetText or 'сид' not in targetText:
@@ -106,11 +109,12 @@ def get_text_message(message):
         str +=tagName(trigerGudkov)
     print(str)
     if 'Просьба заполнить ДЗМ' not in str:
-        if ("@" in str):
-            bot.send_message(chat_id=message.chat.id, reply_to_message_id=message.id, text= str)
+        if (message.chat.id == -1001526837008):
+            if ("@" in str):
+                bot.send_message(chat_id=message.chat.id, reply_to_message_id=message.id, text= str)
 while True:
     try:
         bot.polling(none_stop=True,interval=0)
     except Exception as _ex:
         print(_ex)
-        sleep(5)
+        sleep(1)
