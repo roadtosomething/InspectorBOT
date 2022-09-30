@@ -26,7 +26,7 @@ def get_text_message(message):
     trigerMikova = ["@diamikova","тян","обработай","проставь","смени","PKO_0000_0208",'свяжи','связа','формир','синхронизируй']
     trigerTrukhacheva = ["@Elenka_Evgen","смени","проставь","PKO_0000_0208"]
     trigerPokholkov = ["@Krasnoff_YT","обработай","тян",'свяжи','синхронизируй']
-    trigerLamskov = ["@lamskoff","тян","обработай",'свяжи','связа','формир']
+    trigerStukalin = ["@anoycy","тян","обработай",'свяжи','связа','формир']
     trigerGudkov = ["@Georgiy_Gudkov","ошибка","смени","проставь",'поправь','пг_ик_4004','посмотри','убери','смп']
     trigerGilev = ["@Smiiiita","эа2020_ик_10127","спек","спецификаци",'замени']
     trigerVoronin = ["@jlmdie","эа2020_ик_10127","спек","спецификаци",'sid','сид']
@@ -45,6 +45,8 @@ def get_text_message(message):
 
     if "test" in targetText:
         print(message.chat.id)
+    if "бот, на связи?" in targetText:
+        bot.send_message(message.chat.id,'Ага, работаю(',reply_to_message_id=message.id)
     if 'выгрузить дзм' in targetText:
         cols = [3, 11, 13,14]
         file_name = 'data.xlsx'
@@ -57,18 +59,19 @@ def get_text_message(message):
         print("Dowload done...")
         i = 0
         t = datetime.date.today()
+        print(t)
         while True:
             try:
-                t = datetime.date.fromordinal(t.toordinal() - i)
+                print(t.__format__('%d.%m'))
                 df = pd.read_excel(file_name, sheet_name=t.__format__('%d.%m'), usecols=cols)
+                print(t)
                 break
-            except ValueError:
-                i = i + 1
+            except:
+                t = datetime.date.fromordinal(t.toordinal() - 1)
         print('DFForming done...')
         df2 = df.fillna("Пустое значение")
         df3 = df2[(df2['Способ решения'] == 'Пустое значение') & (df2['Ответственный ТП3']!='MorozovaAV')][['Код инцидента','Ответственный ТП3','Решение']]
-        df3.sort_values(by='Ответственный ТП3')
-        dataframe_list = df3[df3['Решение']=='Пустое значение'][['Код инцидента','Ответственный ТП3']].values.tolist()
+        dataframe_list = df3[df3['Решение']=='Пустое значение'][['Код инцидента','Ответственный ТП3']].sort_values(by='Ответственный ТП3').values.tolist()
         print('ListInformationForming done...')
         strMessage = "Просьба заполнить ДЗМ\nhttps://disk.yandex.ru/i/rCzzuoBHTJyYFQ\n" \
               "Следующих специалистов:\n"
@@ -93,7 +96,7 @@ def get_text_message(message):
         str += tagName(trigerGilev)
         str += tagName(trigerVoronin)
     if "/plan-purchase-schedules/" in targetText:
-        str += tagName(trigerLamskov)
+        str += tagName(trigerStukalin)
         str += tagName(trigerMikova)
         str += tagName(trigerGudkov)
         if 'не удалось найти информацию о финансировании' not in targetText:
@@ -105,7 +108,7 @@ def get_text_message(message):
         str += tagName(trigerVoronin)
     if "/definition-supplier/" in targetText:
         str +=tagName(trigerMikova)
-        str +=tagName(trigerLamskov)
+        str +=tagName(trigerStukalin)
         str +=tagName(trigerGudkov)
     print(str)
     if 'Просьба заполнить ДЗМ' not in str:
