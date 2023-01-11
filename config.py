@@ -1,3 +1,3 @@
-tokenYad = 'AQAAAAAGWDWOAAhI4zCO_Piv80SVmNzohUpL6Go'
-tokenBot='5530656760:AAGAgKuFsVqZlneTqcPmy-z2u3VtlUlHHP4'
-chatVEP=-1001389497684
+tokenYad = '****'
+tokenBot='****'
+chatVEP="****"
